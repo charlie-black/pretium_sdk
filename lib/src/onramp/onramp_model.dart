@@ -1,23 +1,21 @@
-class OnRampModel {
-  final String status;
+class OnRampInitiateResponse {
   final String transactionCode;
+  final String status;
   final String message;
 
-  OnRampModel({
-    required this.status,
+  OnRampInitiateResponse({
     required this.transactionCode,
+    required this.status,
     required this.message,
   });
 
-  factory OnRampModel.fromJson(Map<String, dynamic> json) {
-    final data = json.containsKey('data') ? json['data'] : json;
-    return OnRampModel(
-      status: data['status'],
-      transactionCode: data['currency'],
-      message: data['country_name'],
+  factory OnRampInitiateResponse.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] as Map<String, dynamic>? ?? json;
+
+    return OnRampInitiateResponse(
+      transactionCode: data['transaction_code'] as String? ?? '',
+      status: data['status'] as String? ?? 'UNKNOWN',
+      message: data['message'] as String? ?? '',
     );
   }
-
-  @override
-  String toString() => 'On ramp($transactionCode: $status - $message)';
 }

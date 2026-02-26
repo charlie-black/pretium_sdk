@@ -241,7 +241,7 @@ class Pretium {
     }
   }
 
-  Future<OnRampModel> initiateOnRamp({
+  Future<OnRampInitiateResponse> initiateOnRamp({
     required String shortCode,
     required String amount,
     required String chain,
@@ -266,7 +266,9 @@ class Pretium {
           "callback_url": callbackUrl,
         },
       );
-      return OnRampModel.fromJson(_parse(response.data));
+
+      final json = _parse(response.data);
+      return OnRampInitiateResponse.fromJson(json);
     } on DioException catch (e) {
       _handleError(e);
     }

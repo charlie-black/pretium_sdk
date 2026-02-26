@@ -64,11 +64,7 @@ void main() async {
       endDate: "2025-07-20",
       currencyCode: "cdf"
     );
-    final transactionStatus = await pretium.getTransactionStatus(
-      transactionCode: "ebb8ee20-4e24-4360-bcd3-e4291b8d1cad",
-      currencyCode: "kes"
-    );
-    print(transactionStatus);
+
 
   } on PretiumException catch (e) {
     print('API Error [${e.code}]: ${e.message}');

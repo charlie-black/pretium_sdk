@@ -48,8 +48,14 @@ void main() async {
         walletAddress: '0x3Eaab84B42F9fCf2A9B3f2FDB83572B4153eE958',
         callbackUrl: "https://pretium.africa/callback",
         currencyCode: 'KES');
+    final validateAccount = await pretium.validateAccountNigeria(
+      accountNumber: "8536409",
+      bankCode: "100033"
 
-    print('✅ OnRamp: $onRamp');
+    );
+
+    print(validateAccount);
+
   } on PretiumException catch (e) {
     print('API Error [${e.code}]: ${e.message}');
   } catch (e) {

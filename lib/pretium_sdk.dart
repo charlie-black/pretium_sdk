@@ -9,9 +9,9 @@ import 'package:pretium_sdk/src/disburse/disburse_model.dart';
 import 'package:pretium_sdk/src/onramp/onramp_model.dart';
 import 'package:pretium_sdk/src/transactions/bank_transfers/bank_transfer_model.dart';
 import 'package:pretium_sdk/src/transactions/supported_banks/supported_banks_model.dart';
+import 'package:pretium_sdk/src/transactions/validate_account_nigeria/validate_account_nigeria_model.dart';
 
 import 'exceptions/pretium_exception.dart';
-
 
 class Pretium {
   final String apiKey;
@@ -54,7 +54,8 @@ class Pretium {
       case DioExceptionType.connectionTimeout:
         throw PretiumException(code: 0, message: 'Connection timed out.');
       case DioExceptionType.receiveTimeout:
-        throw PretiumException(code: 0, message: 'Server took too long to respond.');
+        throw PretiumException(
+            code: 0, message: 'Server took too long to respond.');
       case DioExceptionType.connectionError:
         throw PretiumException(code: 0, message: 'No internet connection.');
       default:
@@ -75,7 +76,9 @@ class Pretium {
     try {
       final response = await _dio.post('/account/countries');
       final json = _parse(response.data);
-      return (json['data'] as List).map((c) => CountryModel.fromJson(c)).toList();
+      return (json['data'] as List)
+          .map((c) => CountryModel.fromJson(c))
+          .toList();
     } on DioException catch (e) {
       _handleError(e);
     }
@@ -103,7 +106,9 @@ class Pretium {
     try {
       final response = await _dio.post('/account/networks');
       final json = _parse(response.data);
-      return (json['data'] as List).map((c) => NetworkModel.fromJson(c)).toList();
+      return (json['data'] as List)
+          .map((c) => NetworkModel.fromJson(c))
+          .toList();
     } on DioException catch (e) {
       _handleError(e);
     }
@@ -118,28 +123,34 @@ class Pretium {
     }
   }
 
-  Future<List<SupportedBanksModel>> getSupportedBanks({required String countryCode}) async {
+  Future<List<SupportedBanksModel>> getSupportedBanks(
+      {required String countryCode}) async {
     try {
-      final response = await _dio.post('/v1/banks/$countryCode');
+      final response = await _dio.post(
+          countryCode == "NGN" || countryCode == "ngn"
+              ? '/v1/banks'
+              : '/v1/banks/$countryCode');
       final json = _parse(response.data);
-      return (json['data'] as List).map((c) => SupportedBanksModel.fromJson(c)).toList();
+      return (json['data'] as List)
+          .map((c) => SupportedBanksModel.fromJson(c))
+          .toList();
     } on DioException catch (e) {
       _handleError(e);
     }
   }
 
-  Future<BankTransferModel> initiateBankTransfer({
-    required String type,
-    required String accountNumber,
-    required String bankCode,
-    required String amount,
-    required String chain,
-    required String transactionHash,
-    required String callbackUrl,
-    required String currencyCode
-  }) async {
+  Future<BankTransferModel> initiateBankTransfer(
+      {required String type,
+      required String accountNumber,
+      required String bankCode,
+      required String amount,
+      required String chain,
+      required String transactionHash,
+      required String callbackUrl,
+      required String currencyCode}) async {
     try {
-      final response = await _dio.post('/v1/pay/$currencyCode',
+      final response = await _dio.post(
+        '/v1/pay/$currencyCode',
         data: {
           "type": type,
           "account_number": accountNumber,
@@ -155,6 +166,7 @@ class Pretium {
       _handleError(e);
     }
   }
+
   Future<DisburseModel> initiateDisburse({
     required String type,
     required String shortCode,
@@ -181,7 +193,7 @@ class Pretium {
           "type": type,
           "shortcode": shortCode,
           "amount": amount,
-          "mobile_network":mobileNetwork,
+          "mobile_network": mobileNetwork,
           "chain": chain,
           "fee": fee,
           "transaction_hash": transactionHash,
@@ -194,6 +206,7 @@ class Pretium {
       _handleError(e);
     }
   }
+
   Future<OnRampModel> initiateOnRamp({
     required String shortCode,
     required String amount,
@@ -205,22 +218,32 @@ class Pretium {
     required String currencyCode,
     required String mobileNetwork,
   }) async {
-
     try {
       final response = await _dio.post(
         '/v1/onramp/$currencyCode',
         data: {
           "shortcode": shortCode,
           "amount": amount,
-          "mobile_network":mobileNetwork,
+          "mobile_network": mobileNetwork,
           "chain": chain,
           "fee": fee,
-          "asset":asset,
-          "address":walletAddress,
+          "asset": asset,
+          "address": walletAddress,
           "callback_url": callbackUrl,
         },
       );
       return OnRampModel.fromJson(_parse(response.data));
+    } on DioException catch (e) {
+      _handleError(e);
+    }
+  }
+  Future<ValidateAccountNigeriaModel> validateAccountNigeria({required String bankCode, required String accountNumber}) async {
+    try {
+      final response = await _dio.post('/v1/validation/NGN',data: {
+        "account_number":accountNumber,
+        "bank_code":bankCode
+      });
+      return ValidateAccountNigeriaModel.fromJson(_parse(response.data));
     } on DioException catch (e) {
       _handleError(e);
     }

@@ -42,11 +42,11 @@ Every method throws a `PretiumException` on failure. Always wrap calls in a try-
 import 'package:pretium_sdk/exceptions/pretium_exception.dart';
 
 try {
-  final account = await pretium.getAccount();
+final account = await pretium.getAccount();
 } on PretiumException catch (e) {
-  print('API Error [${e.code}]: ${e.message}');
+print('API Error [${e.code}]: ${e.message}');
 } catch (e) {
-  print('Unexpected error: $e');
+print('Unexpected error: $e');
 }
 ```
 
@@ -133,8 +133,8 @@ Fetch a live USD ↔ fiat exchange rate.
 
 ```dart
 final rate = await pretium.getExchangeRates(
-  to: 'KES',
-  buyingRate: true,
+to: 'KES',
+buyingRate: true,
 );
 
 print(rate.from);  // USD
@@ -159,10 +159,10 @@ Returns all supported blockchain networks and their assets.
 final networks = await pretium.getNetworks();
 
 for (final network in networks) {
-  print('${network.name} active: ${network.checkoutStatus}');
-  for (final asset in network.assets) {
-    print('  └── ${asset.name}: ${asset.contractAddress}');
-  }
+print('${network.name} active: ${network.checkoutStatus}');
+for (final asset in network.assets) {
+print('  └── ${asset.name}: ${asset.contractAddress}');
+}
 }
 ```
 
@@ -172,9 +172,9 @@ for (final network in networks) {
 |---|---|---|
 | `name` | `String` | Network name e.g. `Celo`, `Tron` |
 | `icon` | `String` | Icon URL |
-| `settlementWalletAddress` | `String` | Settlement wallet |
+| `settlementWalletAddress` | `String` | Settlement wallet address |
 | `checkoutStatus` | `bool` | Whether network is active |
-| `assets` | `List<NetworkAsset>` | Supported assets |
+| `assets` | `List<NetworkAsset>` | Supported assets on this network |
 
 ---
 
@@ -200,6 +200,134 @@ print(wallet.countryName); // Kenya
 
 ## Transactions
 
+### Get All Transactions
+
+Returns a list of transactions filtered by date range and currency.
+
+```dart
+final allTransactions = await pretium.getTransactions(
+  startDate: "2025-02-19",
+  endDate: "2025-07-20",
+  currencyCode: "cdf",
+);
+
+print(allTransactions);
+// AllTransactionsModel(total: 20, completed: 10, failed: 7, pending: 3)
+
+// Filter by status
+for (final tx in allTransactions.completed) {
+  print('✅ ${tx.transactionCode} — ${tx.amount} ${tx.currencyCode}');
+}
+
+for (final tx in allTransactions.failed) {
+  print('❌ ${tx.transactionCode} — ${tx.message}');
+}
+
+for (final tx in allTransactions.pending) {
+  print('⏳ ${tx.transactionCode} — ${tx.amount}');
+}
+
+// Filter by category
+for (final tx in allTransactions.disbursements) {
+  print('💸 ${tx.shortcode} — ${tx.amount}');
+}
+
+for (final tx in allTransactions.collections) {
+  print('💰 ${tx.shortcode} — ${tx.amount}');
+}
+```
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `startDate` | `String` | ✅ | Start date in `YYYY-MM-DD` format |
+| `endDate` | `String` | ✅ | End date in `YYYY-MM-DD` format |
+| `currencyCode` | `String` | ✅ | Currency code e.g. `kes`, `cdf`, `ngn` |
+
+**TransactionItem fields:**
+
+| Field | Type | Nullable | Description |
+|---|---|---|---|
+| `id` | `int` | ❌ | Transaction ID |
+| `transactionCode` | `String` | ❌ | Unique transaction code |
+| `status` | `String` | ❌ | `COMPLETE`, `FAILED`, `PENDING` |
+| `amount` | `String` | ❌ | Transaction amount |
+| `amountInUsd` | `String` | ❌ | Equivalent USD amount |
+| `type` | `String` | ❌ | e.g. `B2C`, `MOBILE` |
+| `shortcode` | `String` | ❌ | Phone / shortcode used |
+| `category` | `String` | ❌ | `DISBURSEMENT` or `COLLECTION` |
+| `chain` | `String` | ❌ | Blockchain e.g. `CELO` |
+| `mobileNetwork` | `String` | ❌ | e.g. `MPESA`, `Airtel Money` |
+| `isReleased` | `bool` | ❌ | Whether funds are released |
+| `createdAt` | `DateTime` | ❌ | Transaction timestamp |
+| `receiptNumber` | `String?` | ✅ | Receipt number if available |
+| `publicName` | `String?` | ✅ | Public name if available |
+| `asset` | `String?` | ✅ | Crypto asset if applicable |
+| `transactionHash` | `String?` | ✅ | On-chain hash if applicable |
+
+---
+
+### Get Transaction Status
+
+Returns the status and details of a single transaction.
+
+```dart
+final status = await pretium.getTransactionStatus(
+  transactionCode: "ebb8ee20-4e24-4360-bcd3-e4291b8d1cad",
+  currencyCode: "kes",
+);
+
+print(status.status);        // COMPLETE
+print(status.amount);        // 287541
+print(status.currencyCode);  // KES
+print(status.isComplete);    // true
+print(status.isFailed);      // false
+print(status.isPending);     // false
+print(status.message);       // Transaction processed successfully.
+
+// Nullable fields — always check before using
+if (status.receiptNumber != null) {
+  print(status.receiptNumber); // TI292XGAY9
+}
+
+if (status.accountNumber != null) {
+  print(status.accountNumber);
+}
+```
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `transactionCode` | `String` | ✅ | Transaction code to look up |
+| `currencyCode` | `String` | ✅ | Currency code e.g. `kes`, `ngn` |
+
+**Response fields:**
+
+| Field | Type | Nullable | Description |
+|---|---|---|---|
+| `id` | `int` | ❌ | Transaction ID |
+| `transactionCode` | `String` | ❌ | Unique transaction code |
+| `status` | `String` | ❌ | `COMPLETE`, `FAILED`, `PENDING` |
+| `amount` | `String` | ❌ | Transaction amount |
+| `amountInUsd` | `String` | ❌ | Equivalent USD amount |
+| `type` | `String` | ❌ | e.g. `MOBILE`, `BANK_TRANSFER` |
+| `shortcode` | `String` | ❌ | Phone / shortcode used |
+| `category` | `String` | ❌ | `DISBURSEMENT` or `COLLECTION` |
+| `chain` | `String` | ❌ | Blockchain e.g. `CELO` |
+| `message` | `String` | ❌ | Status message from API |
+| `currencyCode` | `String` | ❌ | Currency e.g. `KES` |
+| `isReleased` | `bool` | ❌ | Whether funds are released |
+| `createdAt` | `DateTime` | ❌ | Transaction timestamp |
+| `accountNumber` | `String?` | ✅ | Bank account if applicable |
+| `publicName` | `String?` | ✅ | Public name if available |
+| `receiptNumber` | `String?` | ✅ | Receipt number if available |
+| `asset` | `String?` | ✅ | Crypto asset if applicable |
+| `transactionHash` | `String?` | ✅ | On-chain hash if applicable |
+
+---
+
 ### Get Supported Banks
 
 Returns supported banks for a given country.
@@ -223,10 +351,12 @@ for (final bank in banks) {
 
 ### Initiate Bank Transfer
 
-Disburse funds directly to a bank account.
+Disburse funds directly to a bank account. Nigeria requires extra fields.
 
 ```dart
-final transfer = await pretium.initiateBankTransfer(
+// Kenya
+final transfer = await pretium.initiateBankTransfer(BankTransferRequest(
+  currencyCode: "KES",
   type: "BANK_TRANSFER",
   accountNumber: "011001100",
   bankCode: "247247",
@@ -234,14 +364,29 @@ final transfer = await pretium.initiateBankTransfer(
   chain: "CELO",
   transactionHash: "0x55a572efe...",
   callbackUrl: "https://your-server.com/callback",
-  currencyCode: "KES",
-);
+));
+
+// Nigeria — extra fields required
+final transfer = await pretium.initiateBankTransfer(BankTransferRequest(
+  currencyCode: "NGN",
+  type: "BANK_TRANSFER",
+  accountNumber: "001918181",
+  bankCode: "123455",
+  amount: "500",
+  chain: "CELO",
+  transactionHash: "0x55a572efe...",
+  callbackUrl: "https://your-server.com/callback",
+  accountName: "John Doe",    // ✅ NGN only
+  bankName: "Sterling Bank",  // ✅ NGN only
+  fee: "10",                  // ✅ NGN only
+));
 ```
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
+| `currencyCode` | `String` | ✅ | Currency e.g. `KES`, `NGN` |
 | `type` | `String` | ✅ | Transfer type e.g. `BANK_TRANSFER` |
 | `accountNumber` | `String` | ✅ | Bank account number |
 | `bankCode` | `String` | ✅ | Bank code from `getSupportedBanks()` |
@@ -249,13 +394,17 @@ final transfer = await pretium.initiateBankTransfer(
 | `chain` | `String` | ✅ | Blockchain e.g. `CELO`, `TRON` |
 | `transactionHash` | `String` | ✅ | On-chain transaction hash |
 | `callbackUrl` | `String` | ✅ | Webhook URL for status updates |
-| `currencyCode` | `String` | ✅ | Currency e.g. `KES`, `NGN` |
+| `accountName` | `String?` | ⚠️ | Required for `NGN` only |
+| `bankName` | `String?` | ⚠️ | Required for `NGN` only |
+| `fee` | `String?` | ⚠️ | Required for `NGN` only |
+
+> ⚠️ Passing `currencyCode: "NGN"` without `accountName`, `bankName`, and `fee` throws a `PretiumException(400)` before the request is made.
 
 ---
 
 ### Initiate Disburse (Mobile / Paybill / Till)
 
-Disburse funds to a mobile number, paybill, or till.
+Disburse funds to a mobile number, paybill, or till number.
 
 ```dart
 // MOBILE — send to a phone number
@@ -349,6 +498,60 @@ final onRamp = await pretium.initiateOnRamp(
 | `walletAddress` | `String` | ✅ | Destination wallet address |
 | `callbackUrl` | `String` | ✅ | Webhook URL for status updates |
 | `currencyCode` | `String` | ✅ | Currency e.g. `KES`, `NGN` |
+
+---
+
+## Validation
+
+### Validate Nigeria Bank Account
+
+Verify a Nigerian bank account number before initiating a transfer.
+
+```dart
+final result = await pretium.validateAccountNigeria(
+  accountNumber: "8536409",
+  bankCode: "100033",
+);
+
+print(result);
+```
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `accountNumber` | `String` | ✅ | Bank account number to verify |
+| `bankCode` | `String` | ✅ | Bank code from `getSupportedBanks()` |
+
+---
+
+### Validate Phone Number
+
+Verify a mobile money number before initiating a disbursement.
+
+```dart
+final result = await pretium.validatePhoneNumber(
+  type: "MOBILE",
+  mobileNetwork: "Safaricom",
+  shortCode: "0704333650",
+  currencyCode: "KES",
+);
+
+print(result);
+```
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `type` | `String` | ✅ | Transfer type e.g. `MOBILE` |
+| `mobileNetwork` | `String` | ✅ | e.g. `Safaricom`, `MTN`, `Airtel` |
+| `shortCode` | `String` | ✅ | Phone number to validate |
+| `currencyCode` | `String` | ✅ | Currency e.g. `KES`, `NGN` |
+
+---
+
+
 
 
 

@@ -9,7 +9,7 @@ void main() async {
   );
 
   try {
-    final account = await pretium.getAccount();
+    // final account = await pretium.getAccount();
     final countries = await pretium.getCountries();
     final exchangeRate =
         await pretium.getExchangeRates(to: 'KES', buyingRate: true);
@@ -17,18 +17,21 @@ void main() async {
     final wallets = await pretium.getWallets(countryId: 1);
     final banks = await pretium.getSupportedBanks(countryCode: "MWK");
     final bankTransfer = await pretium.initiateBankTransfer(
-        type: "BANK_TRANSFER",
-        accountNumber: "011001100",
-        bankCode: "247247",
-        amount: "20",
-        chain: "CELO",
-        transactionHash:
-            "0x55a572efe1720250e442f38741477a4ff7f152e5cd208cc52f8222a1c2a13b",
-        callbackUrl: "https://pretium.africa/callback",
-        currencyCode: 'KES');
+      currencyCode: "NGN",
+      type: "BANK_TRANSFER",
+      accountNumber: "001918181",
+      bankCode: "123455",
+      amount: "500",
+      chain: "CELO",
+      transactionHash: "0x55a572efe...",
+      callbackUrl: "https://your-server.com/callback",
+      accountName: "John Doe", // ✅ NGN only
+      bankName: "Sterling Bank", // ✅ NGN only
+      fee: "10", // ✅ NGN only
+    );
     final disburse = await pretium.initiateDisburse(
         type: "MOBILE",
-        shortCode: "0704333650",
+        shortCode: "0707023542",
         mobileNetwork: "Safaricom",
         accountNumber: "247247", // Required if type is "PAYBILL"
         amount: "20",
@@ -49,12 +52,23 @@ void main() async {
         callbackUrl: "https://pretium.africa/callback",
         currencyCode: 'KES');
     final validateAccount = await pretium.validateAccountNigeria(
-      accountNumber: "8536409",
-      bankCode: "100033"
+        accountNumber: "8536409", bankCode: "100033");
+    final validatePhoneNumber = await pretium.validatePhoneNumber(
+        type: "MOBILE",
+        mobileNetwork: "Safaricom",
+        shortCode: "0704333650",
+        currencyCode: 'KES');
 
+    final allTransactions = await pretium.getTransactions(
+      startDate: "2025-02-19",
+      endDate: "2025-07-20",
+      currencyCode: "cdf"
     );
-
-    print(validateAccount);
+    final transactionStatus = await pretium.getTransactionStatus(
+      transactionCode: "ebb8ee20-4e24-4360-bcd3-e4291b8d1cad",
+      currencyCode: "kes"
+    );
+    print(transactionStatus);
 
   } on PretiumException catch (e) {
     print('API Error [${e.code}]: ${e.message}');

@@ -7,8 +7,12 @@ import 'package:pretium_sdk/src/account/networks_model.dart';
 import 'package:pretium_sdk/src/account/wallet_model.dart';
 import 'package:pretium_sdk/src/disburse/disburse_model.dart';
 import 'package:pretium_sdk/src/onramp/onramp_model.dart';
+import 'package:pretium_sdk/src/phone_number_verification/phone_number_verification_model.dart';
+import 'package:pretium_sdk/src/transactions/all_transactions/all_transaction_model.dart';
+import 'package:pretium_sdk/src/transactions/bank_transfer_nigeria/bank_transfer_nigeria_model.dart';
 import 'package:pretium_sdk/src/transactions/bank_transfers/bank_transfer_model.dart';
 import 'package:pretium_sdk/src/transactions/supported_banks/supported_banks_model.dart';
+import 'package:pretium_sdk/src/transactions/transaction_status/transaction_status_model.dart';
 import 'package:pretium_sdk/src/transactions/validate_account_nigeria/validate_account_nigeria_model.dart';
 
 import 'exceptions/pretium_exception.dart';
@@ -139,15 +143,41 @@ class Pretium {
     }
   }
 
-  Future<BankTransferModel> initiateBankTransfer(
-      {required String type,
-      required String accountNumber,
-      required String bankCode,
-      required String amount,
-      required String chain,
-      required String transactionHash,
-      required String callbackUrl,
-      required String currencyCode}) async {
+  Future<BankTransferModel> initiateBankTransfer({
+    required String type,
+    required String accountNumber,
+    required String bankCode,
+    required String amount,
+    required String chain,
+    required String transactionHash,
+    required String callbackUrl,
+    required String currencyCode,
+    // 👇 Nigeria-only fields
+    String? accountName,
+    String? bankName,
+    String? fee,
+  }) async {
+    if (currencyCode == "NGN") {
+      if (accountName == null || accountName.isEmpty) {
+        throw PretiumException(
+          code: 400,
+          message: 'accountName is required for NGN transfers.',
+        );
+      }
+      if (bankName == null || bankName.isEmpty) {
+        throw PretiumException(
+          code: 400,
+          message: 'bankName is required for NGN transfers.',
+        );
+      }
+      if (fee == null || fee.isEmpty) {
+        throw PretiumException(
+          code: 400,
+          message: 'fee is required for NGN transfers.',
+        );
+      }
+    }
+
     try {
       final response = await _dio.post(
         '/v1/pay/$currencyCode',
@@ -159,6 +189,10 @@ class Pretium {
           "chain": chain,
           "transaction_hash": transactionHash,
           "callback_url": callbackUrl,
+          // 👇 only added when provided (Nigeria)
+          if (accountName != null) "account_name": accountName,
+          if (bankName != null) "bank_name": bankName,
+          if (fee != null) "fee": fee,
         },
       );
       return BankTransferModel.fromJson(_parse(response.data));
@@ -237,13 +271,94 @@ class Pretium {
       _handleError(e);
     }
   }
-  Future<ValidateAccountNigeriaModel> validateAccountNigeria({required String bankCode, required String accountNumber}) async {
+
+  Future<ValidateAccountNigeriaModel> validateAccountNigeria(
+      {required String bankCode, required String accountNumber}) async {
     try {
-      final response = await _dio.post('/v1/validation/NGN',data: {
-        "account_number":accountNumber,
-        "bank_code":bankCode
-      });
+      final response = await _dio.post('/v1/validation/NGN',
+          data: {"account_number": accountNumber, "bank_code": bankCode});
       return ValidateAccountNigeriaModel.fromJson(_parse(response.data));
+    } on DioException catch (e) {
+      _handleError(e);
+    }
+  }
+
+  Future<BankTransferNigeriaModel> initiateBankTransferNigeria(
+      {required String type,
+      required String accountNumber,
+      required String bankCode,
+      required String amount,
+      required String chain,
+      required String transactionHash,
+      required String callbackUrl,
+      required String currencyCode}) async {
+    try {
+      final response = await _dio.post(
+        '/v1/pay/$currencyCode',
+        data: {
+          "type": type,
+          "account_number": accountNumber,
+          "bank_code": bankCode,
+          "amount": amount,
+          "chain": chain,
+          "transaction_hash": transactionHash,
+          "callback_url": callbackUrl,
+        },
+      );
+      return BankTransferNigeriaModel.fromJson(_parse(response.data));
+    } on DioException catch (e) {
+      _handleError(e);
+    }
+  }
+
+  Future<PhoneNumberVerificationModel> validatePhoneNumber({
+    required String currencyCode,
+    required String type,
+    required String shortCode,
+    required String mobileNetwork,
+  }) async {
+    try {
+      final response = await _dio.post('/v1/validation/$currencyCode',
+      data: {
+        "type": type,
+        "shortcode": shortCode,
+        "mobile_network": mobileNetwork
+      });
+      return PhoneNumberVerificationModel.fromJson(_parse(response.data));
+    } on DioException catch (e) {
+      _handleError(e);
+    }
+  }
+  Future<AllTransactionsModel> getTransactions({
+    required String startDate,
+    required String endDate,
+    required String currencyCode
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/account/$currencyCode/transactions',
+        data: {
+          "start_date": startDate,
+          "end_date": endDate,
+        },
+      );
+      return AllTransactionsModel.fromJson(_parse(response.data));
+    } on DioException catch (e) {
+      _handleError(e);
+    }
+  }
+  Future<TransactionStatusModel> getTransactionStatus({
+    required String transactionCode,
+    required String currencyCode,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/$currencyCode/status',
+        data: {
+          "transaction_code": transactionCode,
+        },
+      );
+      return TransactionStatusModel.fromJson(_parse(response.data));
     } on DioException catch (e) {
       _handleError(e);
     }

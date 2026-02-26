@@ -1,0 +1,23 @@
+name: pretium_sdk
+description: A Flutter SDK for the Pretium Africa API – crypto on/off-ramps, payouts, payins and utilities across Africa.
+version: 0.1.0
+homepage: https://docs.pretium.africa
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  dio: ^5.9.1
+  equatable: ^2.0.8
+  json_annotation: ^4.11.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  mocktail: ^1.0.4
+  json_serializable: ^6.13.0
+  build_runner: ^2.11.1

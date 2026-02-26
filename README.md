@@ -350,68 +350,8 @@ final onRamp = await pretium.initiateOnRamp(
 | `callbackUrl` | `String` | ✅ | Webhook URL for status updates |
 | `currencyCode` | `String` | ✅ | Currency e.g. `KES`, `NGN` |
 
----
 
-## Supported Countries
 
-| Country | Currency | Code |
-|---|---|---|
-| Kenya | KES | KE |
-| Uganda | UGX | UG |
-| Nigeria | NGN | NG |
-| Ghana | GHS | GH |
-| Malawi | MWK | MW |
-| Tanzania | TZS | TZ |
-| Rwanda | RWF | RW |
-| Zambia | ZMW | ZM |
-| Ethiopia | ETB | ET |
-| DR Congo | CDF | CD |
-| South Africa | ZAR | ZA |
-| Morocco | MAD | MA |
-
----
-
-## Supported Chains
-
-| Chain | Notes |
-|---|---|
-| `CELO` | Recommended — low fees |
-| `TRON` | USDT TRC-20 |
-| `BASE` | USDC |
-| `POLYGON` | USDT / USDC |
-| `ETHEREUM` | USDT / USDC |
-| `SOLANA` | USDT / USDC |
-| `STELLAR` | USDC |
-| `SCROLL` | USDT |
-
----
-
-## Project Structure
-
-```
-lib/
-├── pretium_sdk.dart              # Entry point
-├── exceptions/
-│   └── pretium_exception.dart    # PretiumException
-└── src/
-    ├── account/
-    │   ├── account_info_model.dart
-    │   ├── country_model.dart
-    │   ├── exchange_rate_model.dart
-    │   ├── networks_model.dart
-    │   └── wallet_model.dart
-    ├── disburse/
-    │   └── disburse_model.dart
-    ├── onramp/
-    │   └── onramp_model.dart
-    └── transactions/
-        ├── bank_transfers/
-        │   └── bank_transfer_model.dart
-        └── supported_banks/
-            └── supported_banks_model.dart
-```
-
----
 
 ## Getting API Credentials
 

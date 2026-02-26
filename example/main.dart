@@ -1,9 +1,11 @@
 import 'package:pretium_sdk/exceptions/pretium_exception.dart';
 import 'package:pretium_sdk/pretium_sdk.dart';
 
+import 'constant.dart';
+
 void main() async {
   final pretium = Pretium(
-    apiKey: 'YOUR_API_KEY',
+    apiKey: apiKey,
   );
 
   try {

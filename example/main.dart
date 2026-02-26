@@ -1,5 +1,5 @@
 import 'package:pretium_sdk/exceptions/pretium_exception.dart';
-import 'package:pretium_sdk/pretium_sdk.dart';
+import 'package:pretium_sdk/src/pretium.dart';
 
 import 'constant.dart';
 

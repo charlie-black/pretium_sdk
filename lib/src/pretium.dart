@@ -244,34 +244,66 @@ class Pretium {
     required String currencyCode,
     required String mobileNetwork,
   }) async {
+    final url = '/v1/onramp/$currencyCode';
+
+    final payload = {
+      "shortcode": shortCode,
+      "amount": amount,
+      "mobile_network": mobileNetwork,
+      "chain": chain,
+      "fee": fee,
+      "asset": asset,
+      "address": walletAddress,
+      "callback_url": callbackUrl,
+    };
+
+    // ──── Print request ───────────────────────────────────────────────
+    print('→ POST $url');
+    print('  Payload:');
     try {
-      final response = await _dio.post(
-        '/v1/onramp/$currencyCode',
-        data: {
-          "shortcode": shortCode,
-          "amount": amount,
-          "mobile_network": mobileNetwork,
-          "chain": chain,
-          "fee": fee,
-          "asset": asset,
-          "address": walletAddress,
-          "callback_url": callbackUrl,
-        },
-      );
+      print(const JsonEncoder.withIndent('  ').convert(payload));
+    } catch (_) {
+      print(payload); // fallback if json encoding fails
+    }
+
+    try {
+      final response = await _dio.post(url, data: payload);
+
+      // ──── Print response ──────────────────────────────────────────────
+      print('← ${response.statusCode} ${response.statusMessage ?? ''}');
+      print('  Headers: ${response.headers}');
+      print('  Body:');
+      try {
+        print(const JsonEncoder.withIndent('  ').convert(response.data));
+      } catch (_) {
+        print(response.data); // raw if not json
+      }
 
       final json = _parse(response.data);
 
-      // Optional: early validation
       if (json['code'] != 200) {
+        print('  ↳ API returned non-200 code: ${json['code']}');
         throw PretiumException(
           code: json['code'] as int? ?? 500,
           message: json['message'] as String? ?? 'Unexpected response',
         );
       }
 
+      print('  ↳ Success – transaction_code: ${json['data']?['transaction_code'] ?? '—'}');
       return OnRampInitiateResponse.fromJson(json);
     } on DioException catch (e) {
+      print('✗ DioException – ${e.type}');
 
+      if (e.requestOptions != null) {
+        print('  Request URL: ${e.requestOptions.uri}');
+        print('  Request method: ${e.requestOptions.method}');
+        print('  Request data:');
+        try {
+          print(const JsonEncoder.withIndent('  ').convert(e.requestOptions.data));
+        } catch (_) {
+          print(e.requestOptions.data);
+        }
+      }
 
       String errorMessage = 'Failed to initiate on-ramp';
       Map<String, dynamic>? errorData;
@@ -279,9 +311,12 @@ class Pretium {
 
       if (e.response != null) {
         statusCode = e.response!.statusCode;
+        print('  ← $statusCode ${e.response?.statusMessage ?? ''}');
 
         try {
           final errorJson = _parse(e.response!.data);
+          print('  Error body:');
+          print(const JsonEncoder.withIndent('  ').convert(errorJson));
 
           errorMessage = errorJson['message'] as String? ??
               errorJson['error'] as String? ??
@@ -289,24 +324,23 @@ class Pretium {
 
           errorData = errorJson['data'] as Map<String, dynamic>?;
         } catch (_) {
+          print('  Raw error response: ${e.response?.data}');
           errorMessage = e.response!.statusMessage ?? 'HTTP $statusCode';
         }
-      } else if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        errorMessage = 'Request timed out';
-      } else if (e.type == DioExceptionType.connectionError) {
-        errorMessage = 'No internet connection or server unreachable';
       } else {
-        errorMessage = e.message ?? 'Unknown network error';
+        print('  No response – error: ${e.message}');
+        print('  Error type: ${e.type}');
+        if (e.error != null) print('  Inner error: ${e.error}');
       }
-
 
       throw PretiumException(
         code: statusCode ?? 0,
         message: errorMessage,
       );
     } catch (e, stackTrace) {
-
+      print('⚡ Unexpected error in initiateOnRamp: $e');
+      print('  Stack trace:');
+      print(stackTrace);
       rethrow;
     }
   }

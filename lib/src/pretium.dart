@@ -233,7 +233,7 @@ class Pretium {
     }
   }
 
-  Future<OnRampInitiateResponse> initiateOnRamp({
+  Future<OnRampInitiateResponse> initiateOnramp({
     required String shortCode,
     required String amount,
     required String chain,
@@ -244,104 +244,24 @@ class Pretium {
     required String currencyCode,
     required String mobileNetwork,
   }) async {
-    final url = '/v1/onramp/$currencyCode';
-
-    final payload = {
-      "shortcode": shortCode,
-      "amount": amount,
-      "mobile_network": mobileNetwork,
-      "chain": chain,
-      "fee": fee,
-      "asset": asset,
-      "address": walletAddress,
-      "callback_url": callbackUrl,
-    };
-
-    // ──── Print request ───────────────────────────────────────────────
-    print('→ POST $url');
-    print('  Payload:');
-    try {
-      print(const JsonEncoder.withIndent('  ').convert(payload));
-    } catch (_) {
-      print(payload); // fallback if json encoding fails
-    }
 
     try {
-      final response = await _dio.post(url, data: payload);
-
-      // ──── Print response ──────────────────────────────────────────────
-      print('← ${response.statusCode} ${response.statusMessage ?? ''}');
-      print('  Headers: ${response.headers}');
-      print('  Body:');
-      try {
-        print(const JsonEncoder.withIndent('  ').convert(response.data));
-      } catch (_) {
-        print(response.data); // raw if not json
-      }
-
-      final json = _parse(response.data);
-
-      if (json['code'] != 200) {
-        print('  ↳ API returned non-200 code: ${json['code']}');
-        throw PretiumException(
-          code: json['code'] as int? ?? 500,
-          message: json['message'] as String? ?? 'Unexpected response',
-        );
-      }
-
-      print('  ↳ Success – transaction_code: ${json['data']?['transaction_code'] ?? '—'}');
-      return OnRampInitiateResponse.fromJson(json);
-    } on DioException catch (e) {
-      print('✗ DioException – ${e.type}');
-
-      if (e.requestOptions != null) {
-        print('  Request URL: ${e.requestOptions.uri}');
-        print('  Request method: ${e.requestOptions.method}');
-        print('  Request data:');
-        try {
-          print(const JsonEncoder.withIndent('  ').convert(e.requestOptions.data));
-        } catch (_) {
-          print(e.requestOptions.data);
-        }
-      }
-
-      String errorMessage = 'Failed to initiate on-ramp';
-      Map<String, dynamic>? errorData;
-      int? statusCode = e.response?.statusCode;
-
-      if (e.response != null) {
-        statusCode = e.response!.statusCode;
-        print('  ← $statusCode ${e.response?.statusMessage ?? ''}');
-
-        try {
-          final errorJson = _parse(e.response!.data);
-          print('  Error body:');
-          print(const JsonEncoder.withIndent('  ').convert(errorJson));
-
-          errorMessage = errorJson['message'] as String? ??
-              errorJson['error'] as String? ??
-              'API error $statusCode';
-
-          errorData = errorJson['data'] as Map<String, dynamic>?;
-        } catch (_) {
-          print('  Raw error response: ${e.response?.data}');
-          errorMessage = e.response!.statusMessage ?? 'HTTP $statusCode';
-        }
-      } else {
-        print('  No response – error: ${e.message}');
-        print('  Error type: ${e.type}');
-        if (e.error != null) print('  Inner error: ${e.error}');
-      }
-
-      throw PretiumException(
-        code: statusCode ?? 0,
-        message: errorMessage,
+      final response = await _dio.post(
+        '/kes/collect',
+        data: {
+          "shortcode": shortCode,
+          "amount": amount,
+          "mobile_network": mobileNetwork,
+          "chain": chain,
+          "fee": fee,
+          "asset": asset,
+          "address": walletAddress,
+          "callback_url": callbackUrl,
+        },
       );
-    } catch (e, stackTrace) {
-      print('⚡ Unexpected error in initiateOnRamp: $e');
-      print('  Stack trace:');
-      print(stackTrace);
-      rethrow;
+      return OnRampInitiateResponse.fromJson(_parse(response.data));
+    } on DioException catch (e) {
+      _handleError(e);
     }
   }
 

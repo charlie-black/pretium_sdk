@@ -1,51 +1,55 @@
+
+
+import 'dart:convert';
+
+OnRampInitiateResponse onRampInitiateResponseFromJson(String str) => OnRampInitiateResponse.fromJson(json.decode(str));
+
+String onRampInitiateResponseToJson(OnRampInitiateResponse data) => json.encode(data.toJson());
+
 class OnRampInitiateResponse {
-  final int code;
-  final String message;
-  final OnRampData data;
+  int? code;
+  String? message;
+  Data? data;
 
   OnRampInitiateResponse({
-    required this.code,
-    required this.message,
-    required this.data,
+    this.code,
+    this.message,
+    this.data,
   });
 
-  factory OnRampInitiateResponse.fromJson(Map<String, dynamic> json) {
-    return OnRampInitiateResponse(
-      code: json['code'] as int,
-      message: json['message'] as String,
-      data: OnRampData.fromJson(json['data'] as Map<String, dynamic>),
-    );
-  }
+  factory OnRampInitiateResponse.fromJson(Map<String, dynamic> json) => OnRampInitiateResponse(
+    code: json["code"],
+    message: json["message"],
+    data: json["data"] == null ? null : Data.fromJson(json["data"]),
+  );
 
-  @override
-  String toString() {
-    return 'OnRampInitiateResponse('
-        'code: $code, '
-        'message: "$message", '
-        'data: $data'
-        ')';
-  }
+  Map<String, dynamic> toJson() => {
+    "code": code,
+    "message": message,
+    "data": data?.toJson(),
+  };
 }
 
-class OnRampData {
-  final String transactionCode;
-  final String status;
-  final String message;
+class Data {
+  String? status;
+  String? transactionCode;
+  String? message;
 
-  OnRampData({
-    required this.transactionCode,
-    required this.status,
-    required this.message,
+  Data({
+    this.status,
+    this.transactionCode,
+    this.message,
   });
 
-  factory OnRampData.fromJson(Map<String, dynamic> json) {
-    return OnRampData(
-      transactionCode: json['transaction_code'] as String,
-      status: json['status'] as String,
-      message: json['message'] as String,
-    );
-  }
+  factory Data.fromJson(Map<String, dynamic> json) => Data(
+    status: json["status"],
+    transactionCode: json["transaction_code"],
+    message: json["message"],
+  );
 
-  @override
-  String toString() => 'OnRampData(transactionCode: $transactionCode, status: $status, message: "$message")';
+  Map<String, dynamic> toJson() => {
+    "status": status,
+    "transaction_code": transactionCode,
+    "message": message,
+  };
 }

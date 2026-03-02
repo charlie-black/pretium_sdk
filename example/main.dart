@@ -41,8 +41,8 @@ void main() async {
     //         "0x55a572efe1720250e442f38741477a4ff7f152e5cd208cc52f8222a1c2a13b",
     //     callbackUrl: "https://pretium.africa/callback",
     //     currencyCode: 'KES');
-    final onRamp = await pretium.initiateOnRamp(
-        shortCode: "0707023542",
+    final onRamp = await pretium.initiateOnramp(
+        shortCode: "0704333650",
         mobileNetwork: "Safaricom",
         amount: "20",
         fee: "0",
@@ -50,7 +50,7 @@ void main() async {
         asset: 'USDT',
         walletAddress: '0x3Eaab84B42F9fCf2A9B3f2FDB83572B4153eE958',
         callbackUrl: "https://pretium.africa/callback",
-        currencyCode: 'KES');
+        currencyCode: 'kes');
     // final validateAccount = await pretium.validateAccountNigeria(
     //     accountNumber: "8536409", bankCode: "100033");
     // final validatePhoneNumber = await pretium.validatePhoneNumber(
@@ -64,6 +64,8 @@ void main() async {
     //   endDate: "2025-07-20",
     //   currencyCode: "cdf"
     // );
+
+    // final transactionStatus = await pretium.getTransactionStatus(transactionCode: "8a84682a-27d3-403f-9f0e-2f4ef39c588e", currencyCode: "kes");
 
     print(onRamp);
 

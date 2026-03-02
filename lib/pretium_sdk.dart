@@ -1,16 +1,7 @@
-// lib/pretium_sdk.dart
-// ──────────────────────────────────────────────────────────────────────────────
-// Public entry point of the pretium_sdk package
-//
-// Users should import only this file:
-// import 'package:pretium_sdk/pretium_sdk.dart';
-//
-// All internal src/ paths are hidden from the outside world.
-// ──────────────────────────────────────────────────────────────────────────────
+
 
 library pretium_sdk;
 
-// Models
 export 'src/account/account_info_model.dart';
 export 'src/account/country_model.dart';
 export 'src/account/exchange_rate_model.dart';

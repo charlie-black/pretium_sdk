@@ -260,9 +260,54 @@ class Pretium {
       );
 
       final json = _parse(response.data);
+
+      // Optional: early validation
+      if (json['code'] != 200) {
+        throw PretiumException(
+          code: json['code'] as int? ?? 500,
+          message: json['message'] as String? ?? 'Unexpected response',
+        );
+      }
+
       return OnRampInitiateResponse.fromJson(json);
     } on DioException catch (e) {
-      _handleError(e);
+
+
+      String errorMessage = 'Failed to initiate on-ramp';
+      Map<String, dynamic>? errorData;
+      int? statusCode = e.response?.statusCode;
+
+      if (e.response != null) {
+        statusCode = e.response!.statusCode;
+
+        try {
+          final errorJson = _parse(e.response!.data);
+
+          errorMessage = errorJson['message'] as String? ??
+              errorJson['error'] as String? ??
+              'API error $statusCode';
+
+          errorData = errorJson['data'] as Map<String, dynamic>?;
+        } catch (_) {
+          errorMessage = e.response!.statusMessage ?? 'HTTP $statusCode';
+        }
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMessage = 'Request timed out';
+      } else if (e.type == DioExceptionType.connectionError) {
+        errorMessage = 'No internet connection or server unreachable';
+      } else {
+        errorMessage = e.message ?? 'Unknown network error';
+      }
+
+
+      throw PretiumException(
+        code: statusCode ?? 0,
+        message: errorMessage,
+      );
+    } catch (e, stackTrace) {
+
+      rethrow;
     }
   }
 

@@ -247,7 +247,7 @@ class Pretium {
 
     try {
       final response = await _dio.post(
-        '/kes/collect',
+        '/$currencyCode/collect',
         data: {
           "shortcode": shortCode,
           "amount": amount,

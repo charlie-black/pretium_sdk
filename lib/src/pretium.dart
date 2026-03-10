@@ -253,8 +253,7 @@ class Pretium {
     required String mobileNetwork,
   }) async {
     try {
-      final response = await _dio.post(
-        '/v1/onramp/$currencyCode',
+      final response = await _dio.post('/v1/onramp/$currencyCode',
         data: {
           "shortcode": shortCode,
           "amount": amount,

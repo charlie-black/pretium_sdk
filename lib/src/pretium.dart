@@ -254,7 +254,7 @@ class Pretium {
   }) async {
     try {
       final response = await _dio.post(
-        '/$currencyCode/collect',
+        '/v1/onramp/$currencyCode',
         data: {
           "shortcode": shortCode,
           "amount": amount,

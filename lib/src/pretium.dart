@@ -12,6 +12,7 @@ import '../exceptions/pretium_exception.dart';
 class Pretium {
   final String apiKey;
   late final Dio _dio;
+  late final Dio _addressDio;
 
   Pretium({
     required this.apiKey,
@@ -20,6 +21,13 @@ class Pretium {
       baseUrl: 'https://api.xwift.africa',
       headers: {
         'x-api-key': apiKey,
+        'Content-Type': 'application/json',
+      },
+    ));
+    _addressDio = Dio(BaseOptions(
+      baseUrl: 'http://24.199.122.201:8080/api',
+      headers: {
+        'api-key': apiKey,
         'Content-Type': 'application/json',
       },
     ));
@@ -244,7 +252,6 @@ class Pretium {
     required String currencyCode,
     required String mobileNetwork,
   }) async {
-
     try {
       final response = await _dio.post(
         '/$currencyCode/collect',
@@ -259,11 +266,34 @@ class Pretium {
           "callback_url": callbackUrl,
         },
       );
-      return OnRampInitiateResponse.fromJson(_parse(response.data));
+
+      return OnRampInitiateResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      _handleError(e);
+
+    }
+  }
+
+  Future<AddressModel> generateAddress() async {
+    try {
+      final response = await _addressDio.post('/ether/generate-address');
+
+      // Print raw response
+      print('Status Code: ${response.statusCode}');
+      print('Raw Response: ${response.data}');
+
+      final model = AddressModel.fromJson(response.data);
+
+      // Print parsed model
+      print('Message: ${model.message}');
+      print('Address: ${model.data?.address}');
+
+      return model;
     } on DioException catch (e) {
       _handleError(e);
     }
   }
+
 
   Future<ValidateAccountNigeriaModel> validateAccountNigeria({
     required String bankCode,

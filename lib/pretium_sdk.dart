@@ -8,6 +8,7 @@ export 'src/account/exchange_rate_model.dart';
 export 'src/account/wallet_model.dart';
 export 'src/disburse/disburse_model.dart';
 export 'src/onramp/onramp_model.dart';
+export 'src/address/address_model.dart';
 export 'src/phone_number_verification/phone_number_verification_model.dart';
 
 export 'src/transactions/all_transactions/all_transaction_model.dart';

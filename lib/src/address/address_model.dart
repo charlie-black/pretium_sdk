@@ -28,19 +28,23 @@ class AddressModel {
 
 class AddressData {
   String? address;
+  String? private;
 
 
   AddressData({
     this.address,
+    this.private,
   });
 
   factory AddressData.fromJson(Map<String, dynamic> json) => AddressData(
     address: json["address"],
+    private: json["private"],
 
   );
 
   Map<String, dynamic> toJson() => {
     "address": address,
+    "private": private,
 
   };
 }
